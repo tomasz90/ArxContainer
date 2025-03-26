@@ -4,8 +4,8 @@
 #include <ArxContainer.h>
 
 // TO RUN TESTS: `pio test -vvv`
-void setUp() {}
-void tearDown() {}
+arx::stdx::set<int, 5> customSet;   // Test with capacity 5
+std::set<int> referenceSet;         // For comparison
 
 // Test function prototypes
 void testInsertAndExist();
@@ -13,9 +13,6 @@ void testErase();
 void testDuplicateInsert();
 void testSetComparisons();
 void testCapacityLimit();
-
-arx::stdx::set<int, 5> customSet;   // Test with capacity 5
-std::set<int> referenceSet;         // For comparison
 
 void setup() {
     Serial.begin(115200);
@@ -32,6 +29,13 @@ void setup() {
 }
 
 void loop() {}
+
+void setUp() {
+    customSet.clear();
+    referenceSet.clear();
+}
+
+void tearDown() {}
 
 void testInsertAndExist() {
     Serial.println("\n=== Testing Insert/Exist ===");
