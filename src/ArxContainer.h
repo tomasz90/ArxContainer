@@ -46,6 +46,8 @@ namespace std {
 #include <array>
 #include <deque>
 #include <map>
+#include <set>
+#include <functional>
 
 #endif
 
@@ -1040,6 +1042,84 @@ namespace arx {
         };
     } // namespace arx
 } // namespace stdx
+
+namespace arx {
+    namespace stdx {
+        // Primary template declaration
+        template<typename>
+        class function;
+
+        // Return type helper (moved outside class)
+        template<typename T>
+        struct ReturnHelper {
+            static T value() { return T(); }
+        };
+
+        template<>
+        struct ReturnHelper<void> {
+            static void value() {}
+        };
+
+        namespace detail {
+            template<typename Callable, typename Res, typename... Args>
+            struct FunctionWrapper {
+                static Callable *stored_callable;
+
+                static Res invoke(Args... args) {
+                    return (*stored_callable)(args...);
+                }
+
+                static void store(const Callable &f) {
+                    stored_callable = const_cast<Callable *>(&f);
+                }
+            };
+
+            template<typename Callable, typename Res, typename... Args>
+            Callable *FunctionWrapper<Callable, Res, Args...>::stored_callable = nullptr;
+        }
+
+        template<typename Res, typename... Args>
+        class function<Res(Args...)> {
+        public:
+            function() : callback(nullptr) {}
+
+            // Function pointer constructor
+            function (Res(
+
+            *func)(Args...)) :
+            callback(func) {}
+
+            // Functor/lambda constructor
+            template<typename Callable>
+            function(const Callable &f) {
+                using Wrapper = detail::FunctionWrapper<Callable, Res, Args...>;
+                Wrapper::store(f);
+                callback = &Wrapper::invoke;
+            }
+
+            Res operator()(Args... args) const {
+                if (callback) {
+                    return callback(args...);
+                }
+                return ReturnHelper<Res>::value();
+            }
+
+            explicit operator bool() const { return callback != nullptr; }
+
+            // Comparison operators
+            bool operator==(const function &other) const { return callback == other.callback; }
+
+            bool operator!=(const function &other) const { return !(*this == other); }
+
+            bool operator==(std::nullptr_t) const { return callback == nullptr; }
+
+            bool operator!=(std::nullptr_t) const { return callback != nullptr; }
+
+        private:
+            Res (*callback)(Args...);
+        };
+    }
+}
 
 template<typename T, size_t N>
 using ArxRingBuffer = arx::RingBuffer<T, N>;
