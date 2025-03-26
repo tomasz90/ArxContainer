@@ -25,6 +25,7 @@ void setup() {
     RUN_TEST(testInsertAndExist);
     RUN_TEST(testErase);
     RUN_TEST(testDuplicateInsert);
+    RUN_TEST(testSetComparisons);
     RUN_TEST(testCapacityLimit);
 
     UNITY_END();

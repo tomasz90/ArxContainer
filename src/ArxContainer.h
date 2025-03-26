@@ -40,7 +40,7 @@ namespace std {
 #include "../ArxContainer/replace_minmax_macros.h"
 #include "../ArxContainer/initializer_list.h"
 
-#if ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L  // Have libstdc++11
+#if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L || ESP32 || NRF52840_XXAA) && !USE_ARX_LIB  // Have libstdc++11
 
 #include <vector>
 #include <array>
@@ -67,12 +67,13 @@ namespace std {
 
 namespace arx {
 
-    namespace container {
-        namespace detail {
-            template<class T>
-            inline T &&move(T &t) { return static_cast<T &&>(t); }
-        }  // namespace detail
-    }  // namespace container
+    namespace stdx {
+        template<class T>
+        inline T &&move(T &t) { return static_cast<T &&>(t); }
+    }  // namespace detail
+}
+
+namespace arx {
 
     template<typename T, size_t N>
     class RingBuffer {
@@ -96,8 +97,8 @@ namespace arx {
             }
 
             ConstIterator(ConstIterator &&it) {
-                this->ptr = container::detail::move(it.ptr);
-                this->pos = container::detail::move(it.pos);
+                this->ptr = stdx::move(it.ptr);
+                this->pos = stdx::move(it.pos);
             }
 
             ConstIterator &operator=(const ConstIterator &rhs) {
@@ -107,8 +108,8 @@ namespace arx {
             }
 
             ConstIterator &operator=(ConstIterator &&rhs) {
-                this->ptr = container::detail::move(rhs.ptr);
-                this->pos = container::detail::move(rhs.pos);
+                this->ptr = stdx::move(rhs.ptr);
+                this->pos = stdx::move(rhs.pos);
                 return *this;
             }
 
@@ -344,22 +345,22 @@ namespace arx {
 
         // move
         RingBuffer(RingBuffer &&r) {
-            head_ = container::detail::move(r.head_);
-            tail_ = container::detail::move(r.tail_);
+            head_ = stdx::move(r.head_);
+            tail_ = stdx::move(r.tail_);
             const_iterator it = r.begin();
             for (size_t i = 0; i < r.size(); ++i) {
                 int pos = it.index_with_offset(i);
-                queue_[pos] = container::detail::move(r.queue_[pos]);
+                queue_[pos] = stdx::move(r.queue_[pos]);
             }
         }
 
         RingBuffer &operator=(RingBuffer &&r) {
-            head_ = container::detail::move(r.head_);
-            tail_ = container::detail::move(r.tail_);
+            head_ = stdx::move(r.head_);
+            tail_ = stdx::move(r.tail_);
             const_iterator it = r.begin();
             for (size_t i = 0; i < r.size(); ++i) {
                 int pos = it.index_with_offset(i);
-                queue_[pos] = container::detail::move(r.queue_[pos]);
+                queue_[pos] = stdx::move(r.queue_[pos]);
             }
             return *this;
         }
@@ -1083,11 +1084,10 @@ namespace arx {
         public:
             function() : callback(nullptr) {}
 
-            // Function pointer constructor
-            function (Res(
+            function(decltype(nullptr)) : callback(nullptr) {}
 
-            *func)(Args...)) :
-            callback(func) {}
+            // Function pointer constructor
+            function (Res(*func)(Args...)) : callback(func) {}
 
             // Functor/lambda constructor
             template<typename Callable>
@@ -1111,9 +1111,9 @@ namespace arx {
 
             bool operator!=(const function &other) const { return !(*this == other); }
 
-            bool operator==(std::nullptr_t) const { return callback == nullptr; }
+            bool operator==(decltype(nullptr)) const { return callback == nullptr; }
 
-            bool operator!=(std::nullptr_t) const { return callback != nullptr; }
+            bool operator!=(decltype(nullptr)) const { return callback != nullptr; }
 
         private:
             Res (*callback)(Args...);
