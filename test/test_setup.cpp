@@ -13,6 +13,7 @@ void testErase();
 void testDuplicateInsert();
 void testSetComparisons();
 void testCapacityLimit();
+
 template<size_t N>
 void ASSERT_ORDER(const arx::stdx::set<int, N>& set);
 
