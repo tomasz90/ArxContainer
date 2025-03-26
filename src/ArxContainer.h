@@ -3,8 +3,8 @@
 #ifndef ARX_RINGBUFFER_H
 #define ARX_RINGBUFFER_H
 
-#include "ArxContainer/has_include.h"
-#include "ArxContainer/has_libstdcplusplus.h"
+#include "../ArxContainer/has_include.h"
+#include "../ArxContainer/has_libstdcplusplus.h"
 
 #ifdef ARDUINO
 #include <Arduino.h>
@@ -35,8 +35,8 @@ namespace std {
     using namespace ::arx::stdx;
 }
 
-#include "ArxContainer/replace_minmax_macros.h"
-#include "ArxContainer/initializer_list.h"
+#include "../ArxContainer/replace_minmax_macros.h"
+#include "../ArxContainer/initializer_list.h"
 
 #if ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L  // Have libstdc++11
 
