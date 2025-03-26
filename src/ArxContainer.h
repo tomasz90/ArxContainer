@@ -65,12 +65,16 @@ namespace std {
 #define ARX_MAP_DEFAULT_SIZE 16
 #endif  // ARX_MAP_DEFAULT_SIZE
 
+#ifndef ARX_SET_DEFAULT_SIZE
+#define ARX_SET_DEFAULT_SIZE 16
+#endif  // ARX_SET_DEFAULT_SIZE
+
 namespace arx {
 
     namespace stdx {
         template<class T>
         inline T &&move(T &t) { return static_cast<T &&>(t); }
-    }  // namespace detail
+    }
 }
 
 namespace arx {
@@ -85,8 +89,7 @@ namespace arx {
             const T *ptr{nullptr};  // pointer to the first element
             int pos{0};
 
-            ConstIterator(const T *ptr, int pos)
-                    : ptr(ptr), pos(pos) {}
+            ConstIterator(const T *ptr, int pos) : ptr(ptr), pos(pos) {}
 
         public:
             ConstIterator() {}
@@ -311,12 +314,10 @@ namespace arx {
         using iterator = Iterator;
         using const_iterator = ConstIterator;
 
-        RingBuffer()
-                : queue_(), head_(0), tail_(0) {
+        RingBuffer() : queue_(), head_(0), tail_(0) {
         }
 
-        RingBuffer(std::initializer_list<T> lst)
-                : queue_(), head_(0), tail_(0) {
+        RingBuffer(std::initializer_list<T> lst) : queue_(), head_(0), tail_(0) {
             for (auto it = lst.begin(); it != lst.end(); ++it) {
                 push_back(*it);
             }
@@ -652,15 +653,12 @@ namespace arx {
             using iterator = typename RingBuffer<T, N>::iterator;
             using const_iterator = typename RingBuffer<T, N>::const_iterator;
 
-            vector()
-                    : RingBuffer<T, N>() {}
+            vector() : RingBuffer<T, N>() {}
 
-            vector(std::initializer_list<T> lst)
-                    : RingBuffer<T, N>(lst) {}
+            vector(std::initializer_list<T> lst) : RingBuffer<T, N>(lst) {}
 
             // copy
-            vector(const vector &r)
-                    : RingBuffer<T, N>(r) {}
+            vector(const vector &r) : RingBuffer<T, N>(r) {}
 
             vector &operator=(const vector &r) {
                 RingBuffer<T, N>::operator=(r);
@@ -668,8 +666,7 @@ namespace arx {
             }
 
             // move
-            vector(vector &&r)
-                    : RingBuffer<T, N>(r) {}
+            vector(vector &&r) : RingBuffer<T, N>(r) {}
 
             vector &operator=(vector &&r) {
                 RingBuffer<T, N>::operator=(r);
@@ -696,15 +693,12 @@ namespace arx {
             using iterator = typename RingBuffer<T, N>::iterator;
             using const_iterator = typename RingBuffer<T, N>::const_iterator;
 
-            array()
-                    : RingBuffer<T, N>() {}
+            array() : RingBuffer<T, N>() {}
 
-            array(std::initializer_list<T> lst)
-                    : RingBuffer<T, N>(lst) {}
+            array(std::initializer_list<T> lst) : RingBuffer<T, N>(lst) {}
 
             // copy
-            array(const array &r)
-                    : RingBuffer<T, N>(r) {}
+            array(const array &r) : RingBuffer<T, N>(r) {}
 
             array &operator=(const array &r) {
                 RingBuffer<T, N>::operator=(r);
@@ -712,8 +706,7 @@ namespace arx {
             }
 
             // move
-            array(array &&r)
-                    : RingBuffer<T, N>(r) {}
+            array(array &&r) : RingBuffer<T, N>(r) {}
 
             array &operator=(array &&r) {
                 RingBuffer<T, N>::operator=(r);
@@ -739,15 +732,12 @@ namespace arx {
             using iterator = typename RingBuffer<T, N>::iterator;
             using const_iterator = typename RingBuffer<T, N>::const_iterator;
 
-            deque()
-                    : RingBuffer<T, N>() {}
+            deque() : RingBuffer<T, N>() {}
 
-            deque(std::initializer_list<T> lst)
-                    : RingBuffer<T, N>(lst) {}
+            deque(std::initializer_list<T> lst) : RingBuffer<T, N>(lst) {}
 
             // copy
-            deque(const deque &r)
-                    : RingBuffer<T, N>(r) {}
+            deque(const deque &r) : RingBuffer<T, N>(r) {}
 
             deque &operator=(const deque &r) {
                 RingBuffer<T, N>::operator=(r);
@@ -755,8 +745,7 @@ namespace arx {
             }
 
             // move
-            deque(deque &&r)
-                    : RingBuffer<T, N>(r) {}
+            deque(deque &&r) : RingBuffer<T, N>(r) {}
 
             deque &operator=(deque &&r) {
                 RingBuffer<T, N>::operator=(r);
@@ -809,15 +798,12 @@ namespace arx {
             using iterator = typename base::iterator;
             using const_iterator = typename base::const_iterator;
 
-            map()
-                    : base() {}
+            map() : base() {}
 
-            map(std::initializer_list<pair<Key, T> > lst)
-                    : base(lst) {}
+            map(std::initializer_list<pair<Key, T> > lst) : base(lst) {}
 
             // copy
-            map(const map &r)
-                    : base(r) {}
+            map(const map &r) : base(r) {}
 
             map &operator=(const map &r) {
                 base::operator=(r);
@@ -825,8 +811,7 @@ namespace arx {
             }
 
             // move
-            map(map &&r)
-                    : base(r) {}
+            map(map &&r) : base(r) {}
 
             map &operator=(map &&r) {
                 base::operator=(r);
@@ -946,7 +931,7 @@ namespace arx {
 namespace arx {
     namespace stdx {
 
-        template<typename T, size_t N = ARX_VECTOR_DEFAULT_SIZE>
+        template<typename T, size_t N = ARX_SET_DEFAULT_SIZE>
         struct set : public vector<T, N> {
 
             set() : vector<T, N>() {}
@@ -955,9 +940,8 @@ namespace arx {
                 for (const auto &item: lst) insert(item); // avoid duplicates
             }
 
-            virtual void insert(const T &data) {
-                if (this->size() >= N) return;
-                if (exist(data)) return;
+            bool insert(const T &data) {
+                if (this->size() >= N || exist(data)) return false;
                 size_t low = binary(data);
                 // Insert and shift elements
                 this->push_back(data);
@@ -965,10 +949,7 @@ namespace arx {
                     (*this)[i] = (*this)[i - 1];
                 }
                 (*this)[low] = data;
-            }
-
-            bool exist(const T &data) {
-                return index(data) != -1;
+                return true;
             }
 
             bool erase(const T &data) {
@@ -980,6 +961,10 @@ namespace arx {
                 }
                 this->pop_back();
                 return true;
+            }
+
+            bool exist(const T &data) {
+                return index(data) != -1;
             }
 
             friend bool operator==(const set &a, const set &b) {
@@ -1046,11 +1031,10 @@ namespace arx {
 
 namespace arx {
     namespace stdx {
-        // Primary template declaration
+
         template<typename>
         class function;
 
-        // Return type helper (moved outside class)
         template<typename T>
         struct ReturnHelper {
             static T value() { return T(); }
@@ -1118,8 +1102,8 @@ namespace arx {
         private:
             Res (*callback)(Args...);
         };
-    }
-}
+    } //  namespace stdx
+} // namespace arx
 
 template<typename T, size_t N>
 using ArxRingBuffer = arx::RingBuffer<T, N>;
