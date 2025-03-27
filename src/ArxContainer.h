@@ -1073,7 +1073,7 @@ namespace arx {
 
         template<typename T>
         struct is_trivially_copyable {
-            static const bool value = __is_trivially_copyable(T); // GCC/clang intrinsic
+            static const bool value = __is_trivially_copyable(T);
         };
 
 // --- function implementation ---
@@ -1140,30 +1140,30 @@ namespace arx {
             explicit operator bool() const { return ops != nullptr; }
 
         private:
-            // Return type handling without specialization
+            // Return type handling
             template<typename T>
             static T invoke_return(T*) { return T(); }
             static void invoke_return(void*) {}
 
             template<typename Callable>
-            static vtable get_vtable();
-        };
+            static const vtable& get_vtable() {
+                static const vtable instance = create_vtable<Callable>();
+                return instance;
+            }
 
-// get_vtable must be defined outside the class
-        template<typename Res, typename... Args>
-        template<typename Callable>
-        typename function<Res(Args...)>::vtable
-        function<Res(Args...)>::get_vtable() {
-            return {
-                    [](const void* src, void* dest) {
-                        new (dest) Callable(*static_cast<const Callable*>(src));
-                    },
-                    [](void* obj) { static_cast<Callable*>(obj)->~Callable(); },
-                    [](const void* obj, Args... args) -> Res {
-                        return (*static_cast<const Callable*>(obj))(args...);
-                    }
-            };
-        }
+            template<typename Callable>
+            static vtable create_vtable() {
+                return {
+                        [](const void* src, void* dest) {
+                            new (dest) Callable(*static_cast<const Callable*>(src));
+                        },
+                        [](void* obj) { static_cast<Callable*>(obj)->~Callable(); },
+                        [](const void* obj, Args... args) -> Res {
+                            return (*static_cast<const Callable*>(obj))(args...);
+                        }
+                };
+            }
+        };
 
     } // namespace stdx
 } // namespace arx

@@ -1,5 +1,4 @@
 #include <unity.h>
-#include <Arduino.h>
 #include <set>
 #include <ArxContainer.h>
 
@@ -7,33 +6,8 @@
 arx::stdx::set<int, 5> customSet;   // Test with capacity 5
 std::set<int> referenceSet;         // For comparison
 
-// Test function prototypes
-void testInsertAndExist();
-void testErase();
-void testClear();
-void testDuplicateInsert();
-void testSetComparisons();
-void testCapacityLimit();
-
 template<size_t N>
 void ASSERT_ORDER(const arx::stdx::set<int, N> &set);
-
-void setup() {
-    Serial.begin(115200);
-
-    UNITY_BEGIN();
-
-    RUN_TEST(testInsertAndExist);
-    RUN_TEST(testErase);
-    RUN_TEST(testClear);
-    RUN_TEST(testDuplicateInsert);
-    RUN_TEST(testSetComparisons);
-    RUN_TEST(testCapacityLimit);
-
-    UNITY_END();
-}
-
-void loop() {}
 
 void setUp() {
     customSet.clear();
@@ -42,9 +16,7 @@ void setUp() {
 
 void tearDown() {}
 
-void testInsertAndExist() {
-    Serial.println("\n=== Testing Insert/Exist ===");
-
+void test_set_insert() {
     customSet.insert(3);
     customSet.insert(1);
     customSet.insert(4);
@@ -56,9 +28,7 @@ void testInsertAndExist() {
     ASSERT_ORDER(customSet);
 }
 
-void testErase() {
-    Serial.println("\n=== Testing Erase ===");
-
+void test_set_erase() {
     customSet.insert(3);
     customSet.insert(1);
     customSet.insert(4);
@@ -72,9 +42,7 @@ void testErase() {
     ASSERT_ORDER(customSet);
 }
 
-void testClear() {
-    Serial.println("\n=== Testing Erase ===");
-
+void test_set_clear() {
     customSet.insert(3);
     customSet.insert(1);
     customSet.insert(4);
@@ -87,9 +55,7 @@ void testClear() {
     ASSERT_ORDER(customSet);
 }
 
-void testDuplicateInsert() {
-    Serial.println("\n=== Testing Duplicates ===");
-
+void test_set_duplicate_insert() {
     TEST_ASSERT_MESSAGE(customSet.insert(1), "Shouldn insert");
     TEST_ASSERT_MESSAGE(customSet.insert(4), "Shouldn insert");
     size_t sizeAfter = customSet.size();
@@ -100,9 +66,7 @@ void testDuplicateInsert() {
     ASSERT_ORDER(customSet);
 }
 
-void testSetComparisons() {
-    Serial.println("\n=== Testing Comparisons ===");
-
+void test_set_comparisons() {
     arx::stdx::set<int, 5> set1{1, 2, 3};
     arx::stdx::set<int, 5> set2{3, 2, 1};
     arx::stdx::set<int, 5> set3{1, 2};
@@ -114,9 +78,7 @@ void testSetComparisons() {
     TEST_ASSERT_MESSAGE(set3 < set1, "{1,2} < {1,2,3}");
 }
 
-void testCapacityLimit() {
-    Serial.println("\n=== Testing Capacity ===");
-
+void test_set_capacity_limit() {
     arx::stdx::set<int, 3> smallSet;
     smallSet.insert(1);
     smallSet.insert(2);
