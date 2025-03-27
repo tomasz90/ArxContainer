@@ -12,6 +12,12 @@
 
 #endif
 
+#if !defined(_NEW) || !defined(NEW_H)
+
+#include <new>
+
+#endif
+
 // Make sure std namespace exists
 namespace std {}
 
@@ -934,7 +940,7 @@ namespace arx {
         class set {
         private:
             T data[N];
-            int count;
+            size_t count;
 
         public:
             set() : count(0) {}
@@ -995,16 +1001,6 @@ namespace arx {
 
             const T *end() const { return data + count; }
 
-            T operator[](size_t index) const {
-                assert(index < count);  // Safety check
-                return data[index];
-            }
-
-            T &operator[](size_t index) {
-                assert(index < count);  // Safety check
-                return data[index];
-            }
-
             friend bool operator==(const set &a, const set &b) {
                 if (a.count != b.count) return false;
                 for (size_t i = 0; i < a.count; i++) {
@@ -1048,6 +1044,14 @@ namespace arx {
                 }
                 return low;
             }
+
+            T operator[](size_t index) const {
+                return data[index];
+            }
+
+            T &operator[](size_t index) {
+                return data[index];
+            }
         };
     } //  namespace stdx
 } // namespace arx
@@ -1085,21 +1089,21 @@ namespace arx {
         class function<Res(Args...)> {
         private:
             static const size_t BUFFER_SIZE = 16;
-            alignas(sizeof(void*)) char buffer[BUFFER_SIZE];
+            alignas(sizeof(void *)) char buffer[BUFFER_SIZE];
 
             struct vtable {
-                void (*copy)(const void* src, void* dest);
-                void (*destroy)(void* obj);
-                Res (*invoke)(const void* obj, Args... args);
+                void (*copy)(const void *src, void *dest);
+                void (*destroy)(void *obj);
+                Res (*invoke)(const void *obj, Args... args);
             };
 
-            const vtable* ops = nullptr;
+            const vtable *ops = nullptr;
 
             template<typename Callable>
             struct is_small {
                 static const bool value =
                         sizeof(Callable) <= BUFFER_SIZE &&
-                        alignof(Callable) <= alignof(void*) &&
+                        alignof(Callable) <= alignof(void *) &&
                         is_trivially_copyable<Callable>::value;
             };
 
@@ -1110,7 +1114,9 @@ namespace arx {
             function(Res (*fptr)(Args...)) {
                 if (fptr) {
                     ops = &get_vtable<Res(*)(Args...)>();
-                    new (buffer) decltype(fptr)(fptr);
+                    new(buffer) decltype(fptr)(fptr);
+                } else {
+                    ops = nullptr; // Treat nullptr as empty
                 }
             }
 
@@ -1121,19 +1127,53 @@ namespace arx {
                     typename enable_if<
                             !is_same<Callable, function>::value &&
                             is_small<Callable>::value
-                    >::type* = nullptr
+                    >::type * = nullptr
             ) {
                 ops = &get_vtable<Callable>();
-                new (buffer) Callable(c);
+                new(buffer) Callable(c);
+            }
+
+            function(function &&other) noexcept {
+                ops = other.ops;
+                if (ops) {
+                    memcpy(buffer, other.buffer, BUFFER_SIZE);
+                    other.ops = nullptr;
+                }
             }
 
             ~function() {
                 if (ops && ops->destroy) ops->destroy(buffer);
             }
 
+            function &operator=(function &&other) noexcept {
+                if (this != &other) {
+                    // Destroy current contents
+                    if (ops && ops->destroy) {
+                        ops->destroy(buffer);
+                    }
+                    ops = other.ops;
+                    if (ops) {
+                        memcpy(buffer, other.buffer, BUFFER_SIZE);
+                        other.ops = nullptr;
+                    } else {
+                        memset(buffer, 0, BUFFER_SIZE);
+                    }
+                }
+                return *this;
+            }
+
+            function &operator=(decltype(nullptr)) noexcept {
+                if (ops && ops->destroy) {
+                    ops->destroy(buffer); // Destroy stored callable
+                }
+                ops = nullptr;
+                memset(buffer, 0, BUFFER_SIZE); // Clear buffer
+                return *this;
+            }
+
             Res operator()(Args... args) const {
                 if (!ops || !ops->invoke) {
-                    return invoke_return(static_cast<Res*>(nullptr));
+                    return invoke_return(static_cast<Res *>(nullptr));
                 }
                 return ops->invoke(buffer, args...);
             }
@@ -1143,11 +1183,11 @@ namespace arx {
         private:
             // Return type handling
             template<typename T>
-            static T invoke_return(T*) { return T(); }
-            static void invoke_return(void*) {}
+            static T invoke_return(T *) { return T(); }
+            static void invoke_return(void *) {}
 
             template<typename Callable>
-            static const vtable& get_vtable() {
+            static const vtable &get_vtable() {
                 static const vtable instance = create_vtable<Callable>();
                 return instance;
             }
@@ -1155,12 +1195,20 @@ namespace arx {
             template<typename Callable>
             static vtable create_vtable() {
                 return {
-                        [](const void* src, void* dest) {
-                            new (dest) Callable(*static_cast<const Callable*>(src));
+                        // COPY
+                        [](const void *src, void *dest) {
+                            new(dest) Callable(*static_cast<const Callable *>(src));
                         },
-                        [](void* obj) { static_cast<Callable*>(obj)->~Callable(); },
-                        [](const void* obj, Args... args) -> Res {
-                            return (*static_cast<const Callable*>(obj))(args...);
+                        // DESTROY
+                        [](void *obj) { static_cast<Callable *>(obj)->~Callable(); },
+                        // INVOKE (FIXED)
+                        [](const void *obj, Args... args) -> Res {
+                            const Callable *callable = static_cast<const Callable *>(obj);
+                            if constexpr (is_void<Res>::value) {
+                                (*callable)(args...);  // No return for void
+                            } else {
+                                return (*callable)(args...);  // Return value
+                            }
                         }
                 };
             }

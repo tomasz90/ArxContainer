@@ -1,5 +1,7 @@
 #include <unity.h>
+#if defined(ESP32)
 #include <set>
+#endif
 #include <ArxContainer.h>
 
 // TO RUN TESTS: `pio test -vvv`

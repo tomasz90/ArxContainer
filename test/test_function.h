@@ -73,7 +73,7 @@ void test_function_with_reference_argument() {
 void test_function_with_move_constructor() {
     bool moved = false;
     arx::stdx::function<void()> f1 = [&moved]() { moved = true; };
-    arx::stdx::function<void()> f2 = std::move(f1);
+    arx::stdx::function<void()> f2 = arx::stdx::move(f1);
 
     f2();
     TEST_ASSERT_TRUE(moved);
@@ -97,12 +97,12 @@ void test_function_with_pointer() {
 }
 
 struct Functor {
-    int operator()(int x) { return x + 5; }
+    int operator()(int x) const { return x + 5; }
 };
 
 void test_function_functor_support() {
-//    arx::stdx::function<int(int)> f = Functor();
-//    TEST_ASSERT_EQUAL(8, f(3));
+    arx::stdx::function<int(int)> f = Functor();
+    TEST_ASSERT_EQUAL(8, f(3));
 }
 
 void test_function_reassignment() {
@@ -119,10 +119,10 @@ void test_function_reassignment() {
 }
 
 void test_function_clear() {
-//    bool called = false;
-//    arx::stdx::function<void()> f = [&called]() { called = true; };
-//    f = nullptr;
-//
-//    TEST_ASSERT_FALSE(static_cast<bool>(f));
-//    TEST_ASSERT_FALSE(called); // Shouldn't be called after clear
+    bool called = false;
+    arx::stdx::function<void()> f = [&called]() { called = true; };
+    f = nullptr;
+
+    TEST_ASSERT_FALSE(static_cast<bool>(f));
+    TEST_ASSERT_FALSE(called); // Shouldn't be called after clear
 }
