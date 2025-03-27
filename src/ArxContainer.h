@@ -1204,7 +1204,7 @@ namespace arx {
                         // INVOKE (FIXED)
                         [](const void *obj, Args... args) -> Res {
                             const Callable *callable = static_cast<const Callable *>(obj);
-                            if constexpr (is_void<Res>::value) {
+                            if (is_void<Res>::value) {
                                 (*callable)(args...);  // No return for void
                             } else {
                                 return (*callable)(args...);  // Return value
