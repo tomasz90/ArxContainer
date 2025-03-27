@@ -80,6 +80,15 @@ void test_function_with_move_constructor() {
     TEST_ASSERT_FALSE(static_cast<bool>(f1));
 }
 
+//void test_function_is_the_same() {
+//    std::function<void()> f1 = []() { return 1; };
+//    std::function<void()> f2 = []() { return 1; };
+//
+//    f2 = std::copy(f1);
+//    TEST_ASSERT_TRUE(f1 == f2);
+//    TEST_ASSERT_FALSE(static_cast<bool>(f1));
+//}
+
 static int static_func(int x) { return x * 2; }
 
 void test_function_with_pointer() {
