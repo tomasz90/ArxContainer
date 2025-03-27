@@ -943,6 +943,8 @@ namespace arx {
                 for (const auto &item: lst) insert(item);
             }
 
+            ~set() { clear(); }
+
             bool insert(const T &data_) {
                 if (count >= N || exist(data_)) return false;
                 size_t low = binary(data_);
@@ -1053,7 +1055,6 @@ namespace arx {
 namespace arx {
     namespace stdx {
 
-// --- Custom type traits (since std:: is unavailable) ---
         template<typename T, typename U>
         struct is_same { static const bool value = false; };
 
