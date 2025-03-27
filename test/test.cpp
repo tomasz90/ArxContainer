@@ -1,12 +1,12 @@
 #define UNITY_OUTPUT_CHAR(a) Serial.write(a)
-#include <unity.h>
 #include <Arduino.h>
+#include <unity.h>
 
 void test() {
     TEST_ASSERT(true);
 }
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(BAUD_RATE);
 
     while (!Serial);
     delay(1000);
