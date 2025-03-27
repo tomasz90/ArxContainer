@@ -930,63 +930,96 @@ namespace arx {
 
 namespace arx {
     namespace stdx {
-
         template<typename T, size_t N = ARX_SET_DEFAULT_SIZE>
-        struct set : public vector<T, N> {
+        class set {
+        private:
+            T data[N];
+            int count;
 
-            set() : vector<T, N>() {}
+        public:
+            set() : count(0) {}
 
-            set(std::initializer_list<T> lst) : vector<T, N>() {
-                for (const auto &item: lst) insert(item); // avoid duplicates
+            set(std::initializer_list<T> lst) : count(0) {
+                for (const auto &item: lst) insert(item);
             }
 
-            bool insert(const T &data) {
-                if (this->size() >= N || exist(data)) return false;
-                size_t low = binary(data);
+            bool insert(const T &data_) {
+                if (count >= N || exist(data_)) return false;
+                size_t low = binary(data_);
                 // Insert and shift elements
-                this->push_back(data);
-                for (size_t i = this->size() - 1; i > low; --i) {
-                    (*this)[i] = (*this)[i - 1];
+                data[count++] = data_;
+                for (size_t i = count - 1; i > low; i--) {
+                    data[i] = data[i - 1];
                 }
-                (*this)[low] = data;
+                data[low] = data_;
                 return true;
             }
 
-            bool erase(const T &data) {
-                int idx = index(data);
+            bool erase(const T &data_) {
+                int idx = index(data_);
                 if (idx == -1) return false;
                 // Shift elements left
-                for (size_t i = idx; i < this->size() - 1; ++i) {
+                for (size_t i = idx; i < count - 1; i++) {
                     (*this)[i] = (*this)[i + 1];
                 }
-                this->pop_back();
+                --count;
                 return true;
             }
 
-            bool exist(const T &data) {
-                return index(data) != -1;
+            void clear() {
+                for (size_t i = 0; i < count; i++) {
+                    data[i].~T();
+                }
+                count = 0;
+            }
+
+            size_t size() const {
+                return count;
+            }
+
+            bool empty() const {
+                return count == 0;
+            }
+
+            bool exist(const T &data_) const {
+                return index(data_) != -1;
+            }
+
+            T *begin() { return data; }
+
+            T *end() { return data + count; }
+
+            const T *begin() const { return data; }
+
+            const T *end() const { return data + count; }
+
+            T operator[](size_t index) const {
+                assert(index < count);  // Safety check
+                return data[index];
+            }
+
+            T &operator[](size_t index) {
+                assert(index < count);  // Safety check
+                return data[index];
             }
 
             friend bool operator==(const set &a, const set &b) {
-                if (a.size() != b.size()) return false;
-                for (size_t i = 0; i < a.size(); ++i) {
-                    bool found = false;
-                    for (size_t j = 0; j < b.size(); ++j) {
-                        if (a[i] == b[j]) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) return false;
+                if (a.count != b.count) return false;
+                for (size_t i = 0; i < a.count; i++) {
+                    if (a[i] != b[i]) return false;
                 }
                 return true;
             }
 
+            friend bool operator!=(const set &a, const set &b) {
+                return !(a == b);
+            }
+
             friend bool operator<(const set &a, const set &b) {
-                if (a.size() != b.size()) return a.size() < b.size();
+                if (a.count != b.count) return a.count < b.count;
 
                 // If sizes are equal, compare elements
-                for (size_t i = 0; i < a.size(); ++i) {
+                for (size_t i = 0; i < a.count; i++) {
                     if (a[i] < b[i]) return true;
                     if (b[i] < a[i]) return false;
                 }
@@ -994,30 +1027,18 @@ namespace arx {
             }
 
         private:
-            using vector<T, N>::push_back;
-            using vector<T, N>::pop_back;
-            using vector<T, N>::front;
-            using vector<T, N>::back;
-            using vector<T, N>::emplace_back;
-            using vector<T, N>::data;
-            using vector<T, N>::erase;
-            using vector<T, N>::shrink_to_fit;
-            using vector<T, N>::resize;
-            using vector<T, N>::reserve;
-            using vector<T, N>::capacity;
-
-            int index(const T &data) {
-                size_t low = binary(data);
-                return (low < this->size() && (*this)[low] == data) ? low : -1;
+            int index(const T &data_) const {
+                size_t low = binary(data_);
+                return (low < count && (*this)[low] == data_) ? low : -1;
             }
 
-            int binary(const T &data) {
+            int binary(const T &data_) const {
                 // Find position using binary search
                 size_t low = 0;
-                size_t high = this->size();
+                size_t high = count;
                 while (low < high) {
                     size_t mid = (low + high) / 2;
-                    if ((*this)[mid] < data) {
+                    if ((*this)[mid] < data_) {
                         low = mid + 1;
                     } else {
                         high = mid;
@@ -1026,8 +1047,8 @@ namespace arx {
                 return low;
             }
         };
-    } // namespace arx
-} // namespace stdx
+    } //  namespace stdx
+} // namespace arx
 
 namespace arx {
     namespace stdx {
