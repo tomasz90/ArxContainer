@@ -1053,77 +1053,119 @@ namespace arx {
 namespace arx {
     namespace stdx {
 
+// --- Custom type traits (since std:: is unavailable) ---
+        template<typename T, typename U>
+        struct is_same { static const bool value = false; };
+
+        template<typename T>
+        struct is_same<T, T> { static const bool value = true; };
+
+        template<bool B, typename T = void>
+        struct enable_if {};
+
+        template<typename T>
+        struct enable_if<true, T> { typedef T type; };
+
+        template<typename T>
+        struct is_void { static const bool value = false; };
+        template<>
+        struct is_void<void> { static const bool value = true; };
+
+        template<typename T>
+        struct is_trivially_copyable {
+            static const bool value = __is_trivially_copyable(T); // GCC/clang intrinsic
+        };
+
+// --- function implementation ---
         template<typename>
         class function;
 
-        template<typename T>
-        struct ReturnHelper {
-            static T value() { return T(); }
-        };
-
-        template<>
-        struct ReturnHelper<void> {
-            static void value() {}
-        };
-
-        namespace detail {
-            template<typename Callable, typename Res, typename... Args>
-            struct FunctionWrapper {
-                static Callable *stored_callable;
-
-                static Res invoke(Args... args) {
-                    return (*stored_callable)(args...);
-                }
-
-                static void store(const Callable &f) {
-                    stored_callable = const_cast<Callable *>(&f);
-                }
-            };
-
-            template<typename Callable, typename Res, typename... Args>
-            Callable *FunctionWrapper<Callable, Res, Args...>::stored_callable = nullptr;
-        }
-
         template<typename Res, typename... Args>
         class function<Res(Args...)> {
-        public:
-            function() : callback(nullptr) {}
+        private:
+            static const size_t BUFFER_SIZE = 16;
+            alignas(sizeof(void*)) char buffer[BUFFER_SIZE];
 
-            function(decltype(nullptr)) : callback(nullptr) {}
+            struct vtable {
+                void (*copy)(const void* src, void* dest);
+                void (*destroy)(void* obj);
+                Res (*invoke)(const void* obj, Args... args);
+            };
+
+            const vtable* ops = nullptr;
+
+            template<typename Callable>
+            struct is_small {
+                static const bool value =
+                        sizeof(Callable) <= BUFFER_SIZE &&
+                        alignof(Callable) <= alignof(void*) &&
+                        is_trivially_copyable<Callable>::value;
+            };
+
+        public:
+            function() = default;
 
             // Function pointer constructor
-            function (Res(*func)(Args...)) : callback(func) {}
+            function(Res (*fptr)(Args...)) {
+                if (fptr) {
+                    ops = &get_vtable<Res(*)(Args...)>();
+                    new (buffer) decltype(fptr)(fptr);
+                }
+            }
 
-            // Functor/lambda constructor
+            // Functor constructor
             template<typename Callable>
-            function(const Callable &f) {
-                using Wrapper = detail::FunctionWrapper<Callable, Res, Args...>;
-                Wrapper::store(f);
-                callback = &Wrapper::invoke;
+            function(
+                    Callable c,
+                    typename enable_if<
+                            !is_same<Callable, function>::value &&
+                            is_small<Callable>::value
+                    >::type* = nullptr
+            ) {
+                ops = &get_vtable<Callable>();
+                new (buffer) Callable(c);
+            }
+
+            ~function() {
+                if (ops && ops->destroy) ops->destroy(buffer);
             }
 
             Res operator()(Args... args) const {
-                if (callback) {
-                    return callback(args...);
+                if (!ops || !ops->invoke) {
+                    return invoke_return(static_cast<Res*>(nullptr));
                 }
-                return ReturnHelper<Res>::value();
+                return ops->invoke(buffer, args...);
             }
 
-            explicit operator bool() const { return callback != nullptr; }
-
-            // Comparison operators
-            bool operator==(const function &other) const { return callback == other.callback; }
-
-            bool operator!=(const function &other) const { return !(*this == other); }
-
-            bool operator==(decltype(nullptr)) const { return callback == nullptr; }
-
-            bool operator!=(decltype(nullptr)) const { return callback != nullptr; }
+            explicit operator bool() const { return ops != nullptr; }
 
         private:
-            Res (*callback)(Args...);
+            // Return type handling without specialization
+            template<typename T>
+            static T invoke_return(T*) { return T(); }
+            static void invoke_return(void*) {}
+
+            template<typename Callable>
+            static vtable get_vtable();
         };
-    } //  namespace stdx
+
+// get_vtable must be defined outside the class
+        template<typename Res, typename... Args>
+        template<typename Callable>
+        typename function<Res(Args...)>::vtable
+        function<Res(Args...)>::get_vtable() {
+            return {
+                    [](const void* src, void* dest) {
+                        new (dest) Callable(*static_cast<const Callable*>(src));
+                    },
+                    [](void* obj) { static_cast<Callable*>(obj)->~Callable(); },
+                    [](const void* obj, Args... args) -> Res {
+                        return (*static_cast<const Callable*>(obj))(args...);
+                    }
+            };
+        }
+
+    } // namespace stdx
 } // namespace arx
 
 template<typename T, size_t N>
