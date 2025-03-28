@@ -1,6 +1,4 @@
-//
-// Created by Tomasz Kulig on 28/03/2025.
-//
+#pragma once
 
 #ifndef ARXCONTAINER_SET_H
 #define ARXCONTAINER_SET_H
