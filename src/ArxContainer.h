@@ -963,6 +963,10 @@ namespace arx {
                 return true;
             }
 
+            T &any() {
+                return data[random(count)];
+            }
+
             bool erase(const T &data_) {
                 int idx = index(data_);
                 if (idx == -1) return false;

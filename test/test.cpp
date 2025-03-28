@@ -4,7 +4,7 @@
 #include "test_function.h"
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(BAUD_RATE);
 
     UNITY_BEGIN();
 
