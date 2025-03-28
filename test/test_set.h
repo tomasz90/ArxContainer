@@ -3,6 +3,7 @@
 #include <set>
 #endif
 #include "ArxContainer.h"
+#include "Set.h"
 
 // TO RUN TESTS: `pio test -vvv`
 arx::stdx::set<int, 5> customSet;   // Test with capacity 5

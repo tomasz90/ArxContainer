@@ -1,5 +1,6 @@
 #include <unity.h>
 #include "ArxContainer.h"
+#include "Function.h"
 
 void test_function_without_capture() {
     static bool called = false;

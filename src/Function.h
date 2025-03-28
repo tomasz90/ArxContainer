@@ -1,27 +1,32 @@
 #pragma once
 
-#ifndef ARXCONTAINER_FUNCTION_H
-#define ARXCONTAINER_FUNCTION_H
+#ifndef ARX_CONTAINER_FUNCTION_H
+#define ARX_CONTAINER_FUNCTION_H
 
-#include "Arduino.h"
-#include "type_traits.h"
+#ifndef ARX_FUNCTION_BUFFER_DEFAULT_SIZE
+#define ARX_FUNCTION_BUFFER_DEFAULT_SIZE 8
+#endif  // ARX_FUNCTION_BUFFER_DEFAULT_SIZE
+
+#include <Arduino.h>
+#include "TypeTraits.h"
 
 namespace arx {
     namespace stdx {
 
-// --- function implementation ---
         template<typename>
         class function;
 
         template<typename Res, typename... Args>
         class function<Res(Args...)> {
         private:
-            static const size_t BUFFER_SIZE = 16;
+            static const size_t BUFFER_SIZE = ARX_FUNCTION_BUFFER_DEFAULT_SIZE;
             alignas(sizeof(void *)) char buffer[BUFFER_SIZE];
 
             struct vtable {
                 void (*copy)(const void *src, void *dest);
+
                 void (*destroy)(void *obj);
+
                 Res (*invoke)(const void *obj, Args... args);
             };
 
@@ -48,15 +53,15 @@ namespace arx {
                 }
             }
 
+            template<typename Callable>
+            using EnableIfSmallAndNotFunction = typename enable_if<
+                    !is_same<Callable, function>::value &&
+                    is_small<Callable>::value
+            >::type;
+
             // Functor constructor
             template<typename Callable>
-            function(
-                    Callable c,
-                    typename enable_if<
-                            !is_same<Callable, function>::value &&
-                            is_small<Callable>::value
-                    >::type * = nullptr
-            ) {
+            function(Callable c, EnableIfSmallAndNotFunction<Callable> * = nullptr) {
                 ops = &get_vtable<Callable>();
                 new(buffer) Callable(c);
             }
@@ -88,6 +93,20 @@ namespace arx {
                     return invoke_return(static_cast<Res *>(nullptr));
                 }
                 return ops->invoke(buffer, args...);
+            }
+
+            function &operator=(const function &other) {
+                if (this != &other) {
+                    if (ops && ops->destroy) ops->destroy(buffer);
+                    if (other.ops) {
+                        ops = other.ops;
+                        ops->copy(other.buffer, buffer);
+                    } else {
+                        ops = nullptr;
+                        memset(buffer, 0, BUFFER_SIZE);
+                    }
+                }
+                return *this;
             }
 
             function &operator=(function &&other) noexcept {
@@ -130,6 +149,7 @@ namespace arx {
             // Return type handling
             template<typename T>
             static T invoke_return(T *) { return T(); }
+
             static void invoke_return(void *) {}
 
             template<typename Callable>
@@ -162,4 +182,4 @@ namespace arx {
     } // namespace stdx
 } // namespace arx
 
-#endif //ARXCONTAINER_FUNCTION_H
+#endif //ARX_CONTAINER_FUNCTION_H
