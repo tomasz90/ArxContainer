@@ -1,0 +1,8 @@
+//
+// Created by Tomasz Kulig on 28/03/2025.
+//
+
+#ifndef ARXCONTAINER_TYPE_TRAITS_H
+#define ARXCONTAINER_TYPE_TRAITS_H
+
+#endif //ARXCONTAINER_TYPE_TRAITS_H
