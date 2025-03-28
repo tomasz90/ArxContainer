@@ -2,7 +2,7 @@
 #if defined(ESP32)
 #include <set>
 #endif
-#include <ArxContainer.h>
+#include "ArxContainer.h"
 
 // TO RUN TESTS: `pio test -vvv`
 arx::stdx::set<int, 5> customSet;   // Test with capacity 5
@@ -30,6 +30,18 @@ void test_set_insert() {
     ASSERT_ORDER(customSet);
 }
 
+void test_set_insert_after_clear() {
+    arx::stdx::set<int, 3> set;
+    set.insert(1);
+    set.insert(2);
+    set.clear();
+
+    TEST_ASSERT(set.empty());
+    TEST_ASSERT(set.insert(5));
+    TEST_ASSERT_EQUAL(1, set.size());
+    TEST_ASSERT(set.exist(5));
+}
+
 void test_set_erase() {
     customSet.insert(3);
     customSet.insert(1);
@@ -42,6 +54,30 @@ void test_set_erase() {
     TEST_ASSERT_MESSAGE(!customSet.erase(9), "Shouldn't erase non-existent");
 
     ASSERT_ORDER(customSet);
+}
+
+void test_set_erase_boundaries() {
+    arx::stdx::set<int, 5> set;
+    set.insert(1);
+    set.insert(2);
+    set.insert(3);
+    set.insert(4);
+    set.insert(5);
+
+    // Erase first
+    TEST_ASSERT(set.erase(1));
+    TEST_ASSERT_EQUAL(4, set.size());
+    TEST_ASSERT_TRUE(!set.exist(1));
+
+    // Erase middle
+    TEST_ASSERT(set.erase(3));
+    TEST_ASSERT_EQUAL(3, set.size());
+    TEST_ASSERT_TRUE(!set.exist(3));
+
+    // Erase last
+    TEST_ASSERT(set.erase(5));
+    TEST_ASSERT_EQUAL(2, set.size());
+    TEST_ASSERT_TRUE(!set.exist(5));
 }
 
 void test_set_clear() {
@@ -91,6 +127,20 @@ void test_set_capacity_limit() {
     TEST_ASSERT_MESSAGE(!smallSet.exist(4), "4 shouldn't be inserted");
 
     ASSERT_ORDER(customSet);
+}
+
+void test_set_copy_constructor() {
+    arx::stdx::set<int, 5> original;
+    original.insert(3);
+    original.insert(1);
+    original.insert(4);
+
+    arx::stdx::set<int, 5> copy(original); // Copy
+    TEST_ASSERT(copy == original);
+
+    // Modify original
+    original.erase(3);
+    TEST_ASSERT(copy != original); // Copy remains unchanged
 }
 
 template<size_t N>

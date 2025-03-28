@@ -1,5 +1,5 @@
 #include <unity.h>
-#include <ArxContainer.h>
+#include "ArxContainer.h"
 
 void test_function_without_capture() {
     static bool called = false;
@@ -21,7 +21,7 @@ void test_function_with_capture() {
     TEST_ASSERT_MESSAGE(called, "function was not called");
 }
 
-void test_function_with_args() {
+void test_function_with_arg() {
     int expectedArgument = 10;
 
     arx::stdx::function<void(int)> f = [&expectedArgument](int argument) {
@@ -29,6 +29,25 @@ void test_function_with_args() {
     };
 
     f(expectedArgument);
+}
+
+struct TestClass {
+    String name;
+    int value;
+};
+
+void test_function_with_arg_struct() {
+    auto testObj = TestClass{"testName", 10};
+
+    arx::stdx::function<void(TestClass&)> f = [](TestClass &argument) {
+        argument.name = "newTestName";
+        argument.value = 20;
+    };
+
+    f(testObj);
+
+    TEST_ASSERT_TRUE(testObj.name == "newTestName");
+    TEST_ASSERT_EQUAL_INT(20, testObj.value);
 }
 
 void test_function_with_return() {
@@ -64,7 +83,7 @@ void test_function_with_multiple_arguments() {
 
 void test_function_with_reference_argument() {
     int value = 0;
-    arx::stdx::function<void(int&)> setValue = [](int& x) { x = 100; };
+    arx::stdx::function<void(int &)> setValue = [](int &x) { x = 100; };
     setValue(value);
     TEST_ASSERT_EQUAL(100, value);
 }
@@ -116,4 +135,24 @@ void test_function_clear() {
 
     TEST_ASSERT_FALSE(static_cast<bool>(f));
     TEST_ASSERT_FALSE(called); // Shouldn't be called after clear
+}
+
+void test_function_operator_nullptr() {
+    arx::stdx::function<void()> f = []() {};
+
+    TEST_ASSERT_TRUE(f != nullptr);
+
+    f = nullptr;
+
+    TEST_ASSERT_TRUE(f == nullptr);
+}
+
+void test_function_operator_bool() {
+    arx::stdx::function<void()> f = []() {};
+
+    TEST_ASSERT_TRUE(f);
+
+    f = nullptr;
+
+    TEST_ASSERT_FALSE(f);
 }
