@@ -1064,21 +1064,32 @@ namespace arx {
     namespace stdx {
 
         template<typename T, typename U>
-        struct is_same { static const bool value = false; };
+        struct is_same {
+            static const bool value = false;
+        };
 
         template<typename T>
-        struct is_same<T, T> { static const bool value = true; };
+        struct is_same<T, T> {
+            static const bool value = true;
+        };
 
         template<bool B, typename T = void>
-        struct enable_if {};
+        struct enable_if {
+        };
 
         template<typename T>
-        struct enable_if<true, T> { typedef T type; };
+        struct enable_if<true, T> {
+            typedef T type;
+        };
 
         template<typename T>
-        struct is_void { static const bool value = false; };
+        struct is_void {
+            static const bool value = false;
+        };
         template<>
-        struct is_void<void> { static const bool value = true; };
+        struct is_void<void> {
+            static const bool value = true;
+        };
 
         template<typename T>
         struct is_trivially_copyable {
@@ -1145,8 +1156,25 @@ namespace arx {
                 }
             }
 
+            function(const function &other) {
+                if (other.ops) {
+                    ops = other.ops;
+                    ops->copy(other.buffer, buffer);
+                } else {
+                    ops = nullptr;
+                    memset(buffer, 0, BUFFER_SIZE);
+                }
+            }
+
             ~function() {
                 if (ops && ops->destroy) ops->destroy(buffer);
+            }
+
+            Res operator()(Args... args) const {
+                if (!ops || !ops->invoke) {
+                    return invoke_return(static_cast<Res *>(nullptr));
+                }
+                return ops->invoke(buffer, args...);
             }
 
             function &operator=(function &&other) noexcept {
@@ -1175,11 +1203,12 @@ namespace arx {
                 return *this;
             }
 
-            Res operator()(Args... args) const {
-                if (!ops || !ops->invoke) {
-                    return invoke_return(static_cast<Res *>(nullptr));
-                }
-                return ops->invoke(buffer, args...);
+            bool operator!=(decltype(nullptr)) const noexcept {
+                return ops != nullptr;
+            }
+
+            bool operator==(decltype(nullptr)) const noexcept {
+                return ops == nullptr;
             }
 
             explicit operator bool() const { return ops != nullptr; }
