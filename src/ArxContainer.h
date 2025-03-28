@@ -1250,7 +1250,4 @@ namespace arx {
     } // namespace stdx
 } // namespace arx
 
-template<typename T, size_t N>
-using ArxRingBuffer = arx::RingBuffer<T, N>;
-
 #endif  // ARX_RINGBUFFER_H
