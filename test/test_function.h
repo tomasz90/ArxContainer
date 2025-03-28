@@ -1,5 +1,6 @@
 #include <unity.h>
 #include "ArxContainer.h"
+#include "Function.h"
 
 void test_function_without_capture() {
     static bool called = false;
@@ -7,6 +8,36 @@ void test_function_without_capture() {
     arx::stdx::function<void()> f = []() {
         called = true;
     };
+
+
+
+    //TODO: REMOVE LATER, TO TESTING ONLY
+    std::vector<int> vs{1, 2, 3};
+    for (size_t i = 4; i <= 5; ++i)
+        vs.push_back(i);
+
+    arx::stdx::array<int, 3> arr{1, 2, 3};
+    arr.fill(123);
+
+    arx::stdx::map<String, int> mp{{"one", 1},
+                                   {"two", 2}};
+    mp.insert("three", 3);
+    mp["four"] = 4;
+
+    std::deque<int> dq {1, 2, 3};
+    for (int i = 4; i <= 5; ++i)
+        dq.push_back(i);
+
+    ArxRingBuffer<uint8_t, 4> buffer;
+
+    buffer.push(1);
+    buffer.push(2);
+    buffer.push(3);
+
+    //TODO: REMOVE LATER, TO TESTING ONLY
+
+
+
 
     f();
     TEST_ASSERT_TRUE_MESSAGE(called, "Function was not invoked");

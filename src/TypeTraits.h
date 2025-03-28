@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ARXCONTAINER_TYPE_TRAITS_H
-#define ARXCONTAINER_TYPE_TRAITS_H
+#ifndef ARX_CONTAINER_TYPE_TRAITS_H
+#define ARX_CONTAINER_TYPE_TRAITS_H
 
 namespace arx {
     namespace stdx {
@@ -39,4 +39,4 @@ namespace arx {
         };
     }
 }
-#endif //ARXCONTAINER_TYPE_TRAITS_H
+#endif //ARX_CONTAINER_TYPE_TRAITS_H
