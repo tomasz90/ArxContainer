@@ -3,8 +3,8 @@
 #ifndef ARX_CONTAINER_H
 #define ARX_CONTAINER_H
 
-#include "../ArxContainer/has_include.h"
-#include "../ArxContainer/has_libstdcplusplus.h"
+#include "../config/has_include.h"
+#include "../config/has_libstdcplusplus.h"
 
 #ifdef ARDUINO
 
@@ -52,8 +52,8 @@ namespace arx {
 }
 
 
-#include "../ArxContainer/replace_minmax_macros.h"
-#include "../ArxContainer/initializer_list.h"
+#include "../config/replace_minmax_macros.h"
+#include "../config/initializer_list.h"
 
 // Have libstdc++11
 #if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L || ESP32 || NRF52840_XXAA) && !USE_ARX_LIB
