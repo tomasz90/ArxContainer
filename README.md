@@ -1,6 +1,6 @@
 # ArxContainer
 
-C++ container-like classes (`vector`, `array`, `deque`, `map` etc.) for Arduino which cannot use STL
+C++ container-like classes (`vector`, `array`, `deque`, `map`, `set`, `function` etc.) for Arduino which cannot use STL
 
 ## Note
 
@@ -15,6 +15,8 @@ C++ container-like classes (`vector`, `array`, `deque`, `map` etc.) for Arduino 
 - `array`
 - `map` (`pair`)
 - `deque`
+- `set`
+- `function`
 
 ## Supported Boards
 
@@ -111,6 +113,27 @@ for (int i = 4; i <= 5; ++i)
 // index access
 for (int i = 0; i < dq.size(); ++i)
     Serial.print(dq[i]);
+```
+
+### set
+
+```C++
+std::set<int> set;
+set.insert(1);
+set.insert(2);
+set.insert(3);
+
+for (int &each : set) {
+    Serial.println(each);
+};
+
+```
+
+### function
+
+```C++
+std::function<int(int, int)> multiple = [](int a, int b) { return a * b; };
+Serial.println(multiple(4, 5)); // expect 20
 ```
 
 ## Detail

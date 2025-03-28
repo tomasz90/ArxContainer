@@ -3,11 +3,18 @@
 #ifndef ARX_RINGBUFFER_H
 #define ARX_RINGBUFFER_H
 
-#include "ArxContainer/has_include.h"
-#include "ArxContainer/has_libstdcplusplus.h"
+#include "../ArxContainer/has_include.h"
+#include "../ArxContainer/has_libstdcplusplus.h"
 
 #ifdef ARDUINO
 #include <Arduino.h>
+
+#endif
+
+#if !defined(_NEW) || !defined(NEW_H)
+
+#include <new>
+
 #endif
 
 // Make sure std namespace exists
@@ -35,15 +42,17 @@ namespace std {
     using namespace ::arx::stdx;
 }
 
-#include "ArxContainer/replace_minmax_macros.h"
-#include "ArxContainer/initializer_list.h"
+#include "../ArxContainer/replace_minmax_macros.h"
+#include "../ArxContainer/initializer_list.h"
 
-#if ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L  // Have libstdc++11
+#if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L || ESP32 || NRF52840_XXAA) && !USE_ARX_LIB  // Have libstdc++11
 
 #include <vector>
 #include <array>
 #include <deque>
 #include <map>
+#include <set>
+#include <functional>
 
 #endif
 
@@ -61,14 +70,23 @@ namespace std {
 #define ARX_MAP_DEFAULT_SIZE 16
 #endif  // ARX_MAP_DEFAULT_SIZE
 
+#ifndef ARX_SET_DEFAULT_SIZE
+#define ARX_SET_DEFAULT_SIZE 16
+#endif  // ARX_SET_DEFAULT_SIZE
+
+#ifndef ARX_FUNCTION_BUFFER_DEFAULT_SIZE
+#define ARX_FUNCTION_BUFFER_DEFAULT_SIZE 8
+#endif  // ARX_FUNCTION_BUFFER_DEFAULT_SIZE
+
 namespace arx {
 
-namespace container {
-    namespace detail {
-        template <class T>
-        inline T&& move(T& t) { return static_cast<T&&>(t); }
-    }  // namespace detail
-}  // namespace container
+    namespace stdx {
+        template<class T>
+        inline T &&move(T &t) { return static_cast<T &&>(t); }
+    }
+}
+
+namespace arx {
 
 template <typename T, size_t N>
 class RingBuffer {
@@ -90,8 +108,8 @@ class RingBuffer {
         }
 
         ConstIterator(ConstIterator&& it) {
-            this->ptr = container::detail::move(it.ptr);
-            this->pos = container::detail::move(it.pos);
+            this->ptr = arx::stdx::move(it.ptr);
+            this->pos = arx::stdx::move(it.pos);
         }
 
         ConstIterator& operator=(const ConstIterator& rhs) {
@@ -100,8 +118,8 @@ class RingBuffer {
             return *this;
         }
         ConstIterator& operator=(ConstIterator&& rhs) {
-            this->ptr = container::detail::move(rhs.ptr);
-            this->pos = container::detail::move(rhs.pos);
+            this->ptr = arx::stdx::move(rhs.ptr);
+            this->pos = arx::stdx::move(rhs.pos);
             return *this;
         }
 
@@ -316,22 +334,22 @@ public:
 
     // move
     RingBuffer(RingBuffer&& r) {
-        head_ = container::detail::move(r.head_);
-        tail_ = container::detail::move(r.tail_);
+        head_ = arx::stdx::move(r.head_);
+        tail_ = arx::stdx::move(r.tail_);
         const_iterator it = r.begin();
         for (size_t i = 0; i < r.size(); ++i) {
             int pos = it.index_with_offset(i);
-            queue_[pos] = container::detail::move(r.queue_[pos]);
+            queue_[pos] = arx::stdx::move(r.queue_[pos]);
         }
     }
 
     RingBuffer& operator=(RingBuffer&& r) {
-        head_ = container::detail::move(r.head_);
-        tail_ = container::detail::move(r.tail_);
+        head_ = arx::stdx::move(r.head_);
+        tail_ = arx::stdx::move(r.tail_);
         const_iterator it = r.begin();
         for (size_t i = 0; i < r.size(); ++i) {
             int pos = it.index_with_offset(i);
-            queue_[pos] = container::detail::move(r.queue_[pos]);
+            queue_[pos] = arx::stdx::move(r.queue_[pos]);
         }
         return *this;
     }
@@ -875,7 +893,320 @@ private:
     using base::fill;
 };
 
-} //  namespace stdx
+    } //  namespace stdx
+} // namespace arx
+
+namespace arx {
+    namespace stdx {
+        template<typename T, size_t N = ARX_SET_DEFAULT_SIZE>
+        class set {
+        private:
+            T data[N];
+            size_t count;
+
+        public:
+            set() : count(0) {}
+
+            set(std::initializer_list<T> lst) : count(0) {
+                for (const auto &item: lst) insert(item);
+            }
+
+            ~set() { clear(); }
+
+            bool insert(const T &data_) {
+                if (count >= N || exist(data_)) return false;
+                size_t low = binary(data_);
+                // Insert and shift elements
+                data[count++] = data_;
+                for (size_t i = count - 1; i > low; i--) {
+                    data[i] = data[i - 1];
+                }
+                data[low] = data_;
+                return true;
+            }
+
+            T &any() {
+                return data[random(count)];
+            }
+
+            bool erase(const T &data_) {
+                int idx = index(data_);
+                if (idx == -1) return false;
+                // Shift elements left
+                for (size_t i = idx; i < count - 1; i++) {
+                    (*this)[i] = (*this)[i + 1];
+                }
+                --count;
+                return true;
+            }
+
+            void clear() {
+                for (size_t i = 0; i < count; i++) {
+                    data[i].~T();
+                }
+                count = 0;
+            }
+
+            size_t size() const {
+                return count;
+            }
+
+            bool empty() const {
+                return count == 0;
+            }
+
+            bool exist(const T &data_) const {
+                return index(data_) != -1;
+            }
+
+            T *begin() { return data; }
+
+            T *end() { return data + count; }
+
+            const T *begin() const { return data; }
+
+            const T *end() const { return data + count; }
+
+            friend bool operator==(const set &a, const set &b) {
+                if (a.count != b.count) return false;
+                for (size_t i = 0; i < a.count; i++) {
+                    if (a[i] != b[i]) return false;
+                }
+                return true;
+            }
+
+            friend bool operator!=(const set &a, const set &b) {
+                return !(a == b);
+            }
+
+            friend bool operator<(const set &a, const set &b) {
+                if (a.count != b.count) return a.count < b.count;
+
+                // If sizes are equal, compare elements
+                for (size_t i = 0; i < a.count; i++) {
+                    if (a[i] < b[i]) return true;
+                    if (b[i] < a[i]) return false;
+                }
+                return false; // Sets are equal
+            }
+
+        private:
+            int index(const T &data_) const {
+                size_t low = binary(data_);
+                return (low < count && (*this)[low] == data_) ? low : -1;
+            }
+
+            int binary(const T &data_) const {
+                // Find position using binary search
+                size_t low = 0;
+                size_t high = count;
+                while (low < high) {
+                    size_t mid = (low + high) / 2;
+                    if ((*this)[mid] < data_) {
+                        low = mid + 1;
+                    } else {
+                        high = mid;
+                    }
+                }
+                return low;
+            }
+
+            T operator[](size_t index) const {
+                return data[index];
+            }
+
+            T &operator[](size_t index) {
+                return data[index];
+            }
+        };
+    } //  namespace stdx
+} // namespace arx
+
+namespace arx {
+    namespace stdx {
+
+        template<typename T, typename U>
+        struct is_same {
+            static const bool value = false;
+        };
+
+        template<typename T>
+        struct is_same<T, T> {
+            static const bool value = true;
+        };
+
+        template<bool B, typename T = void>
+        struct enable_if {
+        };
+
+        template<typename T>
+        struct enable_if<true, T> {
+            typedef T type;
+        };
+
+        template<typename T>
+        struct is_void {
+            static const bool value = false;
+        };
+        template<>
+        struct is_void<void> {
+            static const bool value = true;
+        };
+
+        template<typename T>
+        struct is_trivially_copyable {
+            static const bool value = __is_trivially_copyable(T);
+        };
+
+// --- function implementation ---
+        template<typename>
+        class function;
+
+        template<typename Res, typename... Args>
+        class function<Res(Args...)> {
+        private:
+            alignas(sizeof(void *)) char buffer[ARX_FUNCTION_BUFFER_DEFAULT_SIZE];
+
+            struct vtable {
+                void (*copy)(const void *src, void *dest);
+                void (*destroy)(void *obj);
+                Res (*invoke)(const void *obj, Args... args);
+            };
+
+            const vtable *ops = nullptr;
+
+            template<typename Callable>
+            struct is_small {
+                static const bool value =
+                        sizeof(Callable) <= ARX_FUNCTION_BUFFER_DEFAULT_SIZE &&
+                        alignof(Callable) <= alignof(void *) &&
+                        is_trivially_copyable<Callable>::value;
+            };
+
+        public:
+            function() = default;
+
+            // Function pointer constructor
+            function(Res (*fptr)(Args...)) {
+                if (fptr) {
+                    ops = &get_vtable<Res(*)(Args...)>();
+                    new(buffer) decltype(fptr)(fptr);
+                } else {
+                    ops = nullptr; // Treat nullptr as empty
+                }
+            }
+
+            // Functor constructor
+            template<typename Callable>
+            function(Callable c,
+                    typename enable_if<
+                            !is_same<Callable, function>::value &&
+                            is_small<Callable>::value
+                    >::type * = nullptr) {
+                ops = &get_vtable<Callable>();
+                new(buffer) Callable(c);
+            }
+
+            function(function &&other) noexcept {
+                ops = other.ops;
+                if (ops) {
+                    memcpy(buffer, other.buffer, ARX_FUNCTION_BUFFER_DEFAULT_SIZE);
+                    other.ops = nullptr;
+                }
+            }
+
+            function(const function &other) {
+                if (other.ops) {
+                    ops = other.ops;
+                    ops->copy(other.buffer, buffer);
+                } else {
+                    ops = nullptr;
+                    memset(buffer, 0, ARX_FUNCTION_BUFFER_DEFAULT_SIZE);
+                }
+            }
+
+            ~function() {
+                if (ops && ops->destroy) ops->destroy(buffer);
+            }
+
+            Res operator()(Args... args) const {
+                if (!ops || !ops->invoke) {
+                    return invoke_return(static_cast<Res *>(nullptr));
+                }
+                return ops->invoke(buffer, args...);
+            }
+
+            function &operator=(function &&other) noexcept {
+                if (this != &other) {
+                    // Destroy current contents
+                    if (ops && ops->destroy) {
+                        ops->destroy(buffer);
+                    }
+                    ops = other.ops;
+                    if (ops) {
+                        memcpy(buffer, other.buffer, ARX_FUNCTION_BUFFER_DEFAULT_SIZE);
+                        other.ops = nullptr;
+                    } else {
+                        memset(buffer, 0, ARX_FUNCTION_BUFFER_DEFAULT_SIZE);
+                    }
+                }
+                return *this;
+            }
+
+            function &operator=(decltype(nullptr)) noexcept {
+                if (ops && ops->destroy) {
+                    ops->destroy(buffer); // Destroy stored callable
+                }
+                ops = nullptr;
+                memset(buffer, 0, ARX_FUNCTION_BUFFER_DEFAULT_SIZE); // Clear buffer
+                return *this;
+            }
+
+            bool operator!=(decltype(nullptr)) const noexcept {
+                return ops != nullptr;
+            }
+
+            bool operator==(decltype(nullptr)) const noexcept {
+                return ops == nullptr;
+            }
+
+            explicit operator bool() const { return ops != nullptr; }
+
+        private:
+            // Return type handling
+            template<typename T>
+            static T invoke_return(T *) { return T(); }
+            static void invoke_return(void *) {}
+
+            template<typename Callable>
+            static const vtable &get_vtable() {
+                static const vtable instance = create_vtable<Callable>();
+                return instance;
+            }
+
+            template<typename Callable>
+            static vtable create_vtable() {
+                return {
+                        // COPY
+                        [](const void *src, void *dest) {
+                            new(dest) Callable(*static_cast<const Callable *>(src));
+                        },
+                        // DESTROY
+                        [](void *obj) { static_cast<Callable *>(obj)->~Callable(); },
+                        // INVOKE (FIXED)
+                        [](const void *obj, Args... args) -> Res {
+                            const Callable *callable = static_cast<const Callable *>(obj);
+                            if (is_void<Res>::value) {
+                                (*callable)(args...);  // No return for void
+                            } else {
+                                return (*callable)(args...);  // Return value
+                            }
+                        }
+                };
+            }
+        };
+
+    } // namespace stdx
 } // namespace arx
 
 template <typename T, size_t N>
