@@ -7,7 +7,9 @@
 #define ARX_FUNCTION_BUFFER_DEFAULT_SIZE 8
 #endif  // ARX_FUNCTION_BUFFER_DEFAULT_SIZE
 
-#include <Arduino.h>
+#ifdef ARDUINO
+    #include <Arduino.h>
+#endif
 #include "TypeTraits.h"
 
 namespace arx {

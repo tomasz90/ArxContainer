@@ -1,4 +1,13 @@
-# ArxContainer
+# Fork of ArxContainer
+
+### Added Features
+
+- Added `set` container
+- Added `function` container
+- Added tests for them
+- Divided one giant implementation file into multiple files
+
+## Original README (only usage modified)
 
 C++ container-like classes (`vector`, `array`, `deque`, `map` etc.) for Arduino which cannot use STL
 
@@ -111,6 +120,27 @@ for (int i = 4; i <= 5; ++i)
 // index access
 for (int i = 0; i < dq.size(); ++i)
     Serial.print(dq[i]);
+```
+
+### set
+
+```C++
+std::set<int> set;
+set.insert(1);
+set.insert(2);
+set.insert(3);
+
+for (int &each : set) {
+    Serial.println(each);
+};
+
+```
+
+### function
+
+```C++
+std::function<int(int, int)> multiple = [](int a, int b) { return a * b; };
+Serial.println(multiple(4, 5)); // expect 20
 ```
 
 ## Detail

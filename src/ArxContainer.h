@@ -3,7 +3,7 @@
 #ifndef ARX_CONTAINER_H
 #define ARX_CONTAINER_H
 
-#include "../config/has_libstdcplusplus.h"
+#include "config/has_libstdcplusplus.h"
 
 #ifdef ARDUINO
     #include <Arduino.h>

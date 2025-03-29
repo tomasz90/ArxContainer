@@ -7,8 +7,10 @@
 #define ARX_SET_DEFAULT_SIZE 16
 #endif  // ARX_SET_DEFAULT_SIZE
 
-#include <Arduino.h>
-#include "../config/initializer_list.h"
+#ifdef ARDUINO
+    #include <Arduino.h>
+#endif
+#include "config/initializer_list.h"
 
 namespace arx {
     namespace stdx {
