@@ -38,6 +38,12 @@ namespace std {
     using namespace ::arx::stdx;
 }
 
+#if ARX_SYSTEM_HAS_INCLUDE(<initializer_list>)
+    #include <initializer_list>
+#else
+    #include "InitializerList.h"
+#endif
+
 // Have libstdc++11
 #if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L) && !USE_ARX_LIB
 
