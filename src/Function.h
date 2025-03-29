@@ -90,6 +90,10 @@ namespace arx {
                 if (ops && ops->destroy) ops->destroy(buffer);
             }
 
+            function(decltype(nullptr)) noexcept : ops(nullptr) {
+                memset(buffer, 0, BUFFER_SIZE);
+            }
+
             Res operator()(Args... args) const {
                 if (!ops || !ops->invoke) {
                     return invoke_return(static_cast<Res *>(nullptr));

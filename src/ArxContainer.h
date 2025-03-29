@@ -43,6 +43,7 @@ namespace std {
 #else
     #include "InitializerList.h"
 #endif
+
 // Have libstdc++11
 #if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L) && !USE_ARX_LIB
 

@@ -14,6 +14,7 @@
 
 namespace arx {
     namespace stdx {
+
         template<typename T, size_t N = ARX_SET_DEFAULT_SIZE>
         class set {
         private:

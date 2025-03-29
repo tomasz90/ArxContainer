@@ -5,6 +5,7 @@
 
 namespace arx {
     namespace stdx {
+
         template<typename T, typename U>
         struct is_same {
             static const bool value = false;

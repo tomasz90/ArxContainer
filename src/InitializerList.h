@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ARX_TYPE_TRAITS_INITIALIZER_H
-#define ARX_TYPE_TRAITS_INITIALIZER_H
+#ifndef ARX_INITIALIZER_LIST_H
+#define ARX_INITIALIZER_LIST_H
 
 #include <stddef.h>
 
@@ -10,6 +10,7 @@
 // ArduinoSTL is C++98 but *does* define <initializer_list>) and not
 // already defined (e.g. by ArxContainer).
 namespace std {
+
     template <class T>
     class initializer_list {
     private:
@@ -25,4 +26,4 @@ namespace std {
     };
 }  // namespace std
 
-#endif  // ARX_TYPE_TRAITS_INITIALIZER_LIST_H
+#endif  // ARX_INITIALIZER_LIST_H
