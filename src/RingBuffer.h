@@ -6,6 +6,7 @@
 #include <limits.h>
 #include "ArxContainer.h"
 #include "Move.h"
+#include "config/initializer_list.h"
 
 namespace arx {
 
