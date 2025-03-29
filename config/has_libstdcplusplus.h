@@ -3,6 +3,8 @@
 #ifndef ARX_TYPE_TRAITS_HAS_LIBSTDCPLUSPLUS_H
 #define ARX_TYPE_TRAITS_HAS_LIBSTDCPLUSPLUS_H
 
+#include "has_include.h"
+
 #if !defined(ARX_HAVE_LIBSTDCPLUSPLUS)
     #if ARX_SYSTEM_HAS_INCLUDE(<cstdlib>) && !defined(ARDUINO_spresense_ast)
         #include <cstdlib>

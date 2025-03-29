@@ -1,13 +1,12 @@
 #pragma once
 
-#ifndef ARX_CONTAINER_VECTOR_H
-#define ARX_CONTAINER_VECTOR_H
+#ifndef ARX_VECTOR_H
+#define ARX_VECTOR_H
 
 #ifndef ARX_VECTOR_DEFAULT_SIZE
 #define ARX_VECTOR_DEFAULT_SIZE 16
 #endif  // ARX_VECTOR_DEFAULT_SIZE
 
-#include <Arduino.h>
 #include "RingBuffer.h"
 
 namespace arx {
@@ -49,4 +48,4 @@ namespace arx {
     } // namespace arx
 } // namespace stdx
 
-#endif //ARX_CONTAINER_VECTOR_H
+#endif //ARX_VECTOR_H

@@ -1,11 +1,11 @@
 #pragma once
 
-#ifndef ARX_CONTAINER_RINGBUFFER_H
-#define ARX_CONTAINER_RINGBUFFER_H
+#ifndef ARX_RINGBUFFER_H
+#define ARX_RINGBUFFER_H
 
-#include <Arduino.h>
 #include <limits.h>
 #include "ArxContainer.h"
+#include "Move.h"
 
 namespace arx {
 
@@ -577,4 +577,4 @@ inline bool operator!=(const arx::RingBuffer<T, N> &x, const arx::RingBuffer<T, 
 template<typename T, size_t N>
 using ArxRingBuffer = arx::RingBuffer<T, N>;
 
-#endif //ARX_CONTAINER_RINGBUFFER_H
+#endif //ARX_RINGBUFFER_H

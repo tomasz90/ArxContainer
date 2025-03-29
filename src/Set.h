@@ -1,13 +1,14 @@
 #pragma once
 
-#ifndef ARX_CONTAINER_SET_H
-#define ARX_CONTAINER_SET_H
+#ifndef ARX_SET_H
+#define ARX_SET_H
 
 #ifndef ARX_SET_DEFAULT_SIZE
 #define ARX_SET_DEFAULT_SIZE 16
 #endif  // ARX_SET_DEFAULT_SIZE
 
 #include <Arduino.h>
+#include "../config/initializer_list.h"
 
 namespace arx {
     namespace stdx {
@@ -135,4 +136,4 @@ namespace arx {
     } //  namespace stdx
 } // namespace arx
 
-#endif //ARX_CONTAINER_SET_H
+#endif //ARX_SET_H

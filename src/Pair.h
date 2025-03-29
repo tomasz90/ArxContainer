@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ARX_CONTAINER_PAIR_H
-#define ARX_CONTAINER_PAIR_H
+#ifndef ARX_PAIR_H
+#define ARX_PAIR_H
 
 namespace arx {
     namespace stdx {
@@ -16,7 +16,6 @@ namespace arx {
         inline pair<T1, T2> make_pair(const T1 &t1, const T2 &t2) {
             return {t1, t2};
         };
-
     } // namespace arx
 } // namespace stdx
 
@@ -30,4 +29,4 @@ inline bool operator!=(const arx::stdx::pair<T1, T2> &x, const arx::stdx::pair<T
     return !(x == y);
 }
 
-#endif //ARX_CONTAINER_PAIR_H
+#endif //ARX_PAIR_H

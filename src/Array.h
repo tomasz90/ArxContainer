@@ -1,7 +1,8 @@
-#ifndef ARX_CONTAINER_ARRAY_H
-#define ARX_CONTAINER_ARRAY_H
+#pragma once
 
-#include <Arduino.h>
+#ifndef ARX_ARRAY_H
+#define ARX_ARRAY_H
+
 #include "RingBuffer.h"
 
 namespace arx {
@@ -42,4 +43,4 @@ namespace arx {
     } // namespace arx
 } // namespace stdx
 
-#endif //ARX_CONTAINER_ARRAY_H
+#endif //ARX_ARRAY_H

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ARX_CONTAINER_MAP_H
-#define ARX_CONTAINER_MAP_H
+#ifndef ARX_MAP_H
+#define ARX_MAP_H
 
 #ifndef ARX_MAP_DEFAULT_SIZE
 #define ARX_MAP_DEFAULT_SIZE 16
@@ -148,4 +148,4 @@ namespace arx {
     } //  namespace stdx
 } // namespace arx
 
-#endif //ARX_CONTAINER_MAP_H
+#endif //ARX_MAP_H

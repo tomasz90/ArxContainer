@@ -3,19 +3,14 @@
 #ifndef ARX_CONTAINER_H
 #define ARX_CONTAINER_H
 
-#include "../config/has_include.h"
 #include "../config/has_libstdcplusplus.h"
 
 #ifdef ARDUINO
-
-#include <Arduino.h>
-
+    #include <Arduino.h>
 #endif
 
 #if !defined(_NEW) || !defined(NEW_H)
-
-#include <new>
-
+    #include <new>
 #endif
 
 // Make sure std namespace exists
@@ -43,20 +38,8 @@ namespace std {
     using namespace ::arx::stdx;
 }
 
-namespace arx {
-
-    namespace stdx {
-        template<class T>
-        inline T &&move(T &t) { return static_cast<T &&>(t); }
-    }
-}
-
-
-#include "../config/replace_minmax_macros.h"
-#include "../config/initializer_list.h"
-
 // Have libstdc++11
-#if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L || ESP32 || NRF52840_XXAA) && !USE_ARX_LIB
+#if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L) && !USE_ARX_LIB
 
 #include <vector>
 #include <array>
@@ -76,4 +59,4 @@ namespace arx {
 
 #endif
 
-#endif  // ARX_CONTAINER_H
+#endif  // ARX_H

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ARX_CONTAINER_FUNCTION_H
-#define ARX_CONTAINER_FUNCTION_H
+#ifndef ARX_FUNCTION_H
+#define ARX_FUNCTION_H
 
 #ifndef ARX_FUNCTION_BUFFER_DEFAULT_SIZE
 #define ARX_FUNCTION_BUFFER_DEFAULT_SIZE 8
@@ -182,4 +182,4 @@ namespace arx {
     } // namespace stdx
 } // namespace arx
 
-#endif //ARX_CONTAINER_FUNCTION_H
+#endif //ARX_FUNCTION_H

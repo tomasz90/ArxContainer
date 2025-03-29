@@ -1,13 +1,12 @@
 #pragma once
 
-#ifndef ARX_CONTAINER_DEQUE_H
-#define ARX_CONTAINER_DEQUE_H
+#ifndef ARX_DEQUE_H
+#define ARX_DEQUE_H
 
 #ifndef ARX_DEQUE_DEFAULT_SIZE
 #define ARX_DEQUE_DEFAULT_SIZE 16
 #endif  // ARX_DEQUE_DEFAULT_SIZE
 
-#include <Arduino.h>
 #include "RingBuffer.h"
 
 namespace arx {
@@ -47,4 +46,4 @@ namespace arx {
     } // namespace arx
 } // namespace stdx
 
-#endif //ARX_CONTAINER_DEQUE_H
+#endif //ARX_DEQUE_H
