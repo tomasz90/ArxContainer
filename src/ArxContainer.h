@@ -45,7 +45,7 @@ namespace std {
 #if ARX_SYSTEM_HAS_INCLUDE(<initializer_list>)
     #include <initializer_list>
 #else
-    #include "config/initializer_list.h"
+    #include "initializer_list.h"
 #endif
 // Have libstdc++11
 #if (ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L) && !USE_ARX_LIB

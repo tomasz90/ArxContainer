@@ -4,7 +4,7 @@
 #define ARX_TYPE_TRAITS_INITIALIZER_H
 
 #include <stddef.h>
-#include "has_include.h"
+#include "config/has_include.h"
 // Initializer_list *must* be defined in std, so take extra care to only
 // define it when <initializer_list> is really not available (e.g.
 // ArduinoSTL is C++98 but *does* define <initializer_list>) and not
