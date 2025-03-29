@@ -10,7 +10,7 @@
 #ifdef ARDUINO
     #include <Arduino.h>
 #endif
-#include "initializer_list.h"
+#include "InitializerList.h"
 
 namespace arx {
     namespace stdx {
